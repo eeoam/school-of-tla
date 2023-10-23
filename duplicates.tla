@@ -21,8 +21,44 @@ begin
     end while;
 
 end algorithm; *)
+\* BEGIN TRANSLATION (chksum(pcal) = "e8cc16ef" /\ chksum(tla) = "8b019828")
+VARIABLES seq, index, seen, is_unique, pc
+
+vars == << seq, index, seen, is_unique, pc >>
+
+Init == (* Global variables *)
+        /\ seq \in S \X S \X S  \X S
+        /\ index = 1
+        /\ seen = {}
+        /\ is_unique = TRUE
+        /\ pc = "Iterate"
+
+Iterate == /\ pc = "Iterate"
+           /\ IF index <= Len(seq)
+                 THEN /\ IF seq[index] \notin seen
+                            THEN /\ seen' = (seen \union {seq[index]})
+                                 /\ UNCHANGED is_unique
+                            ELSE /\ is_unique' = FALSE
+                                 /\ seen' = seen
+                      /\ index' = index + 1
+                      /\ pc' = "Iterate"
+                 ELSE /\ pc' = "Done"
+                      /\ UNCHANGED << index, seen, is_unique >>
+           /\ seq' = seq
+
+(* Allow infinite stuttering to prevent deadlock on termination. *)
+Terminating == pc = "Done" /\ UNCHANGED vars
+
+Next == Iterate
+           \/ Terminating
+
+Spec == Init /\ [][Next]_vars
+
+Termination == <>(pc = "Done")
+
+\* END TRANSLATION 
 
 =============================================================================
 \* Modification History
-\* Last modified Mon Oct 23 16:54:08 BST 2023 by eric
+\* Last modified Mon Oct 23 18:01:52 BST 2023 by eric
 \* Created Mon Oct 23 16:53:41 BST 2023 by eric
